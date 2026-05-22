@@ -1,0 +1,54 @@
+# one-modbus
+
+A production-grade Modbus RTU data acquisition gateway for Windows. Runs as a single `.exe` — read from serial devices, serve via HTTP API, store to SQLite, push alerts to WeChat/Email.
+
+一个 .exe 搞定工业数据采集全链路：多串口 Modbus 并发采集 → REST API → SQLite 历史存储 → 微信/邮件报警。
+
+## Features
+
+- **Multi-port, multi-device concurrent collection** — Each serial port runs independently in its own goroutine
+- **Batch read optimization** — Variables on the same device are packed into a single Modbus request
+- **Zero-code configuration** — Fill in an Excel spreadsheet, double-click the .exe, done
+- **Built-in HTTP API** — Read any variable value via REST, integrate with any frontend or SCADA
+- **SQLite time-series storage** — Automatic historical data logging with configurable intervals and web-based chart query
+- **Enterprise WeChat alerting** — Push status reports and alarms to your WeChat Work group robot
+- **Email reports** — Scheduled data reports and instant alert emails
+- **Remote upgrade** — Upload a new .exe via browser, auto-replace and restart
+
+## Quick Start
+
+1. Prepare `项目变量信息.xlsx` (project variable configuration) in the same directory as the .exe
+2. Double-click `modbusrtu_broker.exe`
+3. Open browser to `http://localhost:53046/`
+4. View real-time data, query history, configure alerts
+
+Check `docs/quick-start.md` for detailed setup.
+
+## Compatibility
+
+- **OS**: Windows (7/10/11/Server) — COM port access required
+- **Protocol**: Modbus RTU (RS-232/RS-485), function codes 1/2/3/4
+- **Devices**: PLCs, smart meters, sensors, VFDs, temperature controllers — any Modbus RTU device
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│ Service Layer                                        │
+│  REST API  ·  File Server  ·  Charts  ·  OTA Update │
+├──────────────────────────────────────────────────────┤
+│ Core Engine                                          │
+│  Modbus Collector  ·  Batch Reader  ·  Scheduler     │
+│  SQLite Store  ·  Excel Config                       │
+├──────────────────────────────────────────────────────┤
+│ Notifications                                        │
+│  WeChat Work Robot  ·  WeChat Alert  ·  Email Push  │
+├──────────────────────────────────────────────────────┤
+│ Field Devices                                        │
+│  PLC  ·  Meter  ·  Sensor  ·  VFD  ·  Temp Ctrl     │
+└──────────────────────────────────────────────────────┘
+```
+
+## License
+
+MIT
