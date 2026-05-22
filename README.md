@@ -2,9 +2,9 @@
 
 A production-grade Modbus RTU data acquisition gateway for Windows. Runs as a single `.exe` — read from serial devices, serve via HTTP API, store to SQLite, push alerts to WeChat/Email.
 
-[中文说明](README_zh.md)
+一个 .exe 搞定工业数据采集全链路：多串口 Modbus 并发采集 → REST API → SQLite 历史存储 → 微信/邮件报警。
 
----
+Traditional industrial data acquisition requires three separate systems: a data collector, a web visualization platform, and custom development for alerts and reports. **This single .exe replaces all three layers.**
 
 ## Features
 
