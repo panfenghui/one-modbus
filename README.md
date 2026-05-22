@@ -2,12 +2,14 @@
 
 A production-grade Modbus RTU data acquisition gateway for Windows. Runs as a single `.exe` — read from serial devices, serve via HTTP API, store to SQLite, push alerts to WeChat/Email.
 
-一个 .exe 搞定工业数据采集全链路：多串口 Modbus 并发采集 → REST API → SQLite 历史存储 → 微信/邮件报警。
+[中文说明](README_zh.md)
+
+---
 
 ## Features
 
 - **Multi-port, multi-device concurrent collection** — Each serial port runs independently in its own goroutine
-- **Batch read optimization** — Variables on the same device are packed into a single Modbus request
+- **Batch read optimization** — Multiple variables on the same device are packed into a single Modbus request
 - **Zero-code configuration** — Fill in an Excel spreadsheet, double-click the .exe, done
 - **Built-in HTTP API** — Read any variable value via REST, integrate with any frontend or SCADA
 - **SQLite time-series storage** — Automatic historical data logging with configurable intervals and web-based chart query
@@ -30,16 +32,16 @@ Site C:  Sensors    → RS-485 bus → DTU(¥99) → Internet →  (TCP-to-COM b
 - Theoretical max: **64,516 devices** on a single server
 - Hardware cost per device: **less than ¥0.40**
 
-Your software doesn't care if a COM port is local or 100km away — it just pulls Modbus data through it.
+The gateway doesn't care if a COM port is local or 100km away — it just pulls Modbus data through it.
 
 ## Quick Start
 
-1. Prepare `项目变量信息.xlsx` (project variable configuration) in the same directory as the .exe
+1. Prepare `项目变量信息.xlsx` (project variable configuration) file in the same directory as the .exe
 2. Double-click `modbusrtu_broker.exe`
 3. Open browser to `http://localhost:53046/`
 4. View real-time data, query history, configure alerts
 
-Check `docs/quick-start.md` for detailed setup.
+See `docs/quick-start.md` for detailed setup instructions.
 
 ## Compatibility
 
