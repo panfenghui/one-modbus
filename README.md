@@ -15,6 +15,23 @@ A production-grade Modbus RTU data acquisition gateway for Windows. Runs as a si
 - **Email reports** — Scheduled data reports and instant alert emails
 - **Remote upgrade** — Upload a new .exe via browser, auto-replace and restart
 
+## Remote Data Acquisition (Internet + DTU)
+
+Not limited to local serial ports. Pair with a **¥99 DTU (serial-to-TCP converter)** and virtual COM port software to collect data from devices across the internet:
+
+```
+Site A: 254 meters → RS-485 bus → DTU(¥99) → Internet →
+Site B:  PLCs       → RS-485 bus → DTU(¥99) → Internet →  Virtual COM software  →  one-modbus gateway
+Site C:  Sensors    → RS-485 bus → DTU(¥99) → Internet →  (TCP-to-COM bridge)     (real-time polling)
+```
+
+- 1 DTU + 1 RS-485 bus = up to **254 devices** per site (Modbus address limit)
+- 1 server = up to **254 virtual COM ports**
+- Theoretical max: **64,516 devices** on a single server
+- Hardware cost per device: **less than ¥0.40**
+
+Your software doesn't care if a COM port is local or 100km away — it just pulls Modbus data through it.
+
 ## Quick Start
 
 1. Prepare `项目变量信息.xlsx` (project variable configuration) in the same directory as the .exe
