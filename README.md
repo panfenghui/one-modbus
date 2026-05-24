@@ -52,22 +52,7 @@ See `docs/quick-start.md` for detailed setup.
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────┐
-│ Service Layer                                        │
-│  REST API  ·  File Server  ·  Charts  ·  OTA Update │
-├──────────────────────────────────────────────────────┤
-│ Core Engine                                          │
-│  Modbus Collector  ·  Batch Reader  ·  Scheduler     │
-│  SQLite Store  ·  Excel Config                       │
-├──────────────────────────────────────────────────────┤
-│ Notifications                                        │
-│  WeChat Work Robot  ·  WeChat Alert  ·  Email Push  │
-├──────────────────────────────────────────────────────┤
-│ Field Devices                                        │
-│  PLC  ·  Meter  ·  Sensor  ·  VFD  ·  Temp Ctrl     │
-└──────────────────────────────────────────────────────┘
-```
+![one-modbus architecture](docs/architecture-en.svg)
 
 ## License
 
