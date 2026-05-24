@@ -73,7 +73,7 @@ jobs:
           - 双击 modbusrtu_broker.exe 启动
           - 浏览器打开 http://127.0.0.1:53046/统计 即可进入，未登录会自动引导。登录后即可查看所有 API 调用链接和数据" >> release_notes.md
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
@@ -82,3 +82,46 @@ jobs:
           files: modbusrtu_broker.exe
           draft: false
           prerelease: false
+
+      - name: Sync to Gitee Release
+        if: ${{ secrets.GITEE_TOKEN != '' }}
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          BODY=$(cat release_notes.md)
+          echo "Creating Gitee release for $TAG ..."
+          # Create release
+          RESP=$(curl -s -X POST "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases" \
+            -H "Content-Type: application/json" \
+            -d "{\"access_token\":\"${GITEE_TOKEN}\",\"tag_name\":\"${TAG}\",\"name\":\"one-modbus ${TAG}\",\"body\":$(echo "$BODY" | jq -Rs .)}")
+          echo "Response: $RESP"
+          RELEASE_ID=$(echo "$RESP" | jq -r '.id // .target_commitish // empty')
+          if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
+            echo "Uploading asset to Gitee release $RELEASE_ID ..."
+            curl -s -X POST "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases/${RELEASE_ID}/attach_files" \
+              -F "access_token=${GITEE_TOKEN}" \
+              -F "file=@modbusrtu_broker.exe"
+          else
+            echo "Gitee release creation returned unexpected response, check logs"
+          fi
+
+      - name: Sync to GitCode Release
+        if: ${{ secrets.GITCODE_TOKEN != '' }}
+        env:
+          GITCODE_TOKEN: ${{ secrets.GITCODE_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          BODY=$(cat release_notes.md)
+          echo "Creating GitCode release for $TAG ..."
+          # Create release
+          RESP=$(curl -s -X POST "https://gitcode.com/api/v1/repos/weixin_45444393/one-modbus/releases" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: token ${GITCODE_TOKEN}" \
+            -d "{\"tag_name\":\"${TAG}\",\"name\":\"one-modbus ${TAG}\",\"body\":$(echo "$BODY" | jq -Rs .)}")
+          echo "Response: $RESP"
+          # Upload asset to GitCode (GitCode API uses same endpoint with files)
+          UPLOAD_RESP=$(curl -s -X POST "https://gitcode.com/api/v1/repos/weixin_45444393/one-modbus/releases/${TAG}/assets" \
+            -H "Authorization: token ${GITCODE_TOKEN}" \
+            -F "file=@modbusrtu_broker.exe")
+          echo "Upload response: $UPLOAD_RESP"
