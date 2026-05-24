@@ -24,6 +24,9 @@ jobs:
 
       - name: Build EXE (Go cross-compile, no CGO needed)
         run: |
+          # 更新编译时间戳
+          BUILD_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')
+          sed -i "s/编译时间: [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\} [0-9]\{2\}:[0-9]\{2\}/编译时间: ${BUILD_TIME}/" modbusrtu_broker.go
           GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
           go build -ldflags '-s -w' -o modbusrtu_broker.exe modbusrtu_broker.go
 
