@@ -17,25 +17,15 @@ jobs:
           go-version: '1.22'
           cache: true
 
-      - name: Install mingw-w64
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64-x86-64 mingw-w64-tools
-
       - name: Init go.mod
         run: |
           go mod init modbusrtu_broker
           go mod tidy
 
-      - name: Build EXE
+      - name: Build EXE (Go cross-compile, no CGO needed)
         run: |
-          CGO_CFLAGS="-D_WIN32" \
-          CGO_LDFLAGS="-lws2_32" \
-          CC=x86_64-w64-mingw32-gcc \
-          GOOS=windows \
-          GOARCH=amd64 \
-          CGO_ENABLED=1 \
-          go build -ldflags '-s -w -extldflags=-static' -o modbusrtu_broker.exe modbusrtu_broker.go
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 \
+          go build -ldflags '-s -w' -o modbusrtu_broker.exe modbusrtu_broker.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
