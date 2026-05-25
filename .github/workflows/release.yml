@@ -90,9 +90,9 @@ jobs:
           echo "" >> release_notes.md
           echo "| 平台 | 下载地址 |" >> release_notes.md
           echo "|------|---------|" >> release_notes.md
-          echo "| GitHub | https://github.com/dingjiazhi/one-modbus/releases/tag/${VERSION} |" >> release_notes.md
+          echo "| GitHub（自带 .exe） | 本页上方附件可直接下载 |" >> release_notes.md
           echo "| Gitee（国内快） | https://gitee.com/dingjiazhi/one-modbus/releases/download/${VERSION}/modbusrtu_broker.exe |" >> release_notes.md
-          echo "| GitCode | https://gitcode.com/weixin_45444393/one-modbus/releases/tag/${VERSION} |" >> release_notes.md
+          echo "| GitCode（镜像） | 同上 Gitee 链接 |" >> release_notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
