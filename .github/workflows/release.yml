@@ -127,9 +127,10 @@ jobs:
             -d "{\"access_token\":\"${TOKEN}\",\"tag_name\":\"${TAG}\",\"name\":\"one-modbus ${TAG}\",\"body\":${BODY},\"target_commitish\":\"master\"}")
           RID=$(echo "$RESP" | jq -r '.id // "null"')
           if [ "$RID" != "null" ]; then
-            echo "Upload exe to Gitee (跨海 22MB, 最长 15min)..."
+            echo "Upload exe to Gitee (跨海 22MB, 最长 15min, 自动重试3次)..."
             # ⚠️ 900s=15分钟：22MB exe 从美国→中国可能超时，之前用 120s/600s 都 fail 过
-            curl -s --connect-timeout 30 --max-time 900 -X POST \
+            # --retry 3: 网络闪断自动重试，30 秒间隔
+            curl -sS --connect-timeout 30 --max-time 900 --retry 3 --retry-delay 30 -X POST \
               "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases/${RID}/attach_files" \
               -F "access_token=${TOKEN}" \
               -F "file=@modbusrtu_broker.exe"
