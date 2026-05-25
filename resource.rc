@@ -23,6 +23,10 @@ BEGIN
             VALUE "OriginalFilename", "modbusrtu_broker.exe"
             VALUE "ProductName",      "one-modbus"
             VALUE "ProductVersion",   "0.2.16.0"
+            VALUE "Comments",         "获取新版: github.com/dingjiazhi/one-modbus | gitee.com/dingjiazhi/one-modbus"
+            VALUE "WebAddress",       "https://github.com/dingjiazhi/one-modbus"
+            VALUE "GitHub",           "https://github.com/dingjiazhi/one-modbus"
+            VALUE "Gitee",            "https://gitee.com/dingjiazhi/one-modbus"
         END
     END
     BLOCK "VarFileInfo"

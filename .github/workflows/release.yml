@@ -90,7 +90,12 @@ jobs:
           echo "" >> release_notes.md
           echo "---" >> release_notes.md
           echo "## 下载" >> release_notes.md
-          echo "国内用户在 [Gitee](https://gitee.com/dingjiazhi/one-modbus/releases/download/${VERSION}/modbusrtu_broker.exe) 下载更快" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "| 平台 | 下载地址 |" >> release_notes.md
+          echo "|------|---------|" >> release_notes.md
+          echo "| GitHub | https://github.com/dingjiazhi/one-modbus/releases/tag/${VERSION} |" >> release_notes.md
+          echo "| Gitee（国内快） | https://gitee.com/dingjiazhi/one-modbus/releases/download/${VERSION}/modbusrtu_broker.exe |" >> release_notes.md
+          echo "| GitCode | https://gitcode.com/weixin_45444393/one-modbus/releases/tag/${VERSION} |" >> release_notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -167,7 +172,7 @@ jobs:
           echo "" >> /tmp/gitcode_body.md
           echo "---" >> /tmp/gitcode_body.md
           echo "## 下载" >> /tmp/gitcode_body.md
-          echo "[下载 modbusrtu_broker.exe（Gitee 国内快）](https://gitee.com/dingjiazhi/one-modbus/releases/download/${TAG}/modbusrtu_broker.exe)" >> /tmp/gitcode_body.md
+          echo "> 本页面为镜像站，exe 下载请优先使用 Gitee（国内速度快）" >> /tmp/gitcode_body.md
 
           jq -n --arg tag "$TAG" --arg name "one-modbus $TAG" \
             --arg body "$(cat /tmp/gitcode_body.md)" \
