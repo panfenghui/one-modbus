@@ -111,6 +111,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
+          # ⚠️ Gitee 创建 release: BODY 必须用 jq -Rs 内联(已验证)，不能用 jq --arg + 写文件（会 409）
           TAG="${GITHUB_REF#refs/tags/}"
           BODY=$(cat release_notes.md | jq -Rs .)
           echo "Create Gitee release..."
@@ -121,6 +122,7 @@ jobs:
           RID=$(echo "$RESP" | jq -r '.id // "null"')
           if [ "$RID" != "null" ]; then
             echo "Upload exe to Gitee (跨海 22MB, 最长 15min)..."
+            # ⚠️ 900s=15分钟：22MB exe 从美国→中国可能超时，之前用 120s/600s 都 fail 过
             curl -s --connect-timeout 30 --max-time 900 -X POST \
               "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases/${RID}/attach_files" \
               -F "access_token=${TOKEN}" \
@@ -155,7 +157,7 @@ jobs:
             '{tag_name: $tag, name: $name, body: $body, target_commitish: "master"}' \
             > /tmp/gitcode_release_payload.json
 
-          # 先检查是否已有同名 release（GitCode API 返回无 id 字段，靠 tag_name 判断）
+          # ⚠️ GitCode API 坑：Release 对象没有 id 字段！用 tag_name 判断存在性，不要用 .id // empty
           echo "::group::Check/reconcile GitCode release for ${TAG}"
           EXISTING=$(curl -sS --connect-timeout 30 --max-time 30 \
             "https://api.gitcode.com/api/v5/repos/weixin_45444393/one-modbus/releases/tags/${TAG}" \
@@ -194,6 +196,7 @@ jobs:
           # 优先从 Gitee CDN 下载 exe（国内快），失败才用 artifact
           echo "::group::Download exe for GitCode upload"
           echo "Try to download exe from Gitee CDN..."
+          # ⚠️ Gitee API 必须传 access_token（repo 公开也要），否则返回空 assets
           GITEE_INFO=$(curl -s "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases/tags/${TAG}?access_token=${GITEE_TOKEN}")
           EXE_URL=$(echo "$GITEE_INFO" | jq -r '.assets[] | select(.name | endswith(".exe")) | .browser_download_url // empty')
           if [ -n "$EXE_URL" ]; then
@@ -206,11 +209,13 @@ jobs:
           ls -la /tmp/modbusrtu_broker.exe
           echo "::endgroup::"
 
-          # GitCode API 上传附件需指定 file_name，返回的 headers 也要带上
+          # ⚠️ GitCode API 上传附件：必须加 ?file_name= 参数（缺了报 400）
+          # 返回的 headers(x-obs-acl/x-obs-meta-project-id/x-obs-callback) 也必须 PUT 时带上
           echo "::group::Get GitCode upload URL by tag name..."
           UPLOAD_RESP=$(curl -sS --connect-timeout 30 --max-time 30 \
             "https://api.gitcode.com/api/v5/repos/weixin_45444393/one-modbus/releases/${TAG}/upload_url?file_name=modbusrtu_broker.exe" \
             -H "Authorization: Bearer ${GITCODE_TOKEN}")
+          # ⚠️ GitCode 返回的字段名是 .url 不是 .upload_url
           UPLOAD_URL=$(echo "$UPLOAD_RESP" | jq -r '.url // empty')
           # 提取需要的请求头
           OBS_ACL=$(echo "$UPLOAD_RESP" | jq -r '.headers["x-obs-acl"] // empty')
@@ -224,6 +229,7 @@ jobs:
             exit 1
           fi
 
+          # ⚠️ 600s=10分钟：22MB exe PUT 到 GitCode OBS（国内服务器），跨海可能慢
           echo "::group::Upload exe to GitCode (跨海 22MB, 最长 10min)..."
           UPLOAD_RESP=$(curl -sS --connect-timeout 30 --max-time 600 -X PUT "$UPLOAD_URL" \
             -H "Content-Type: application/octet-stream" \
