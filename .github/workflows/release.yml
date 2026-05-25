@@ -2,20 +2,18 @@ name: Build & Release
 
 # 传输策略（永久生效）
 # GitHub（美国编译）→ 自带 .exe 附件（国际下载点）
-# Gitee（国内）→ 唯一跨海上传 .exe（电工国内下载点）
-# GitCode → 只放 Gitee 下载链接，不传附件（国内链路，不重复跨海）
+# Gitee / GitCode（国内）→ 本机编译 + 本机上传（零跨海问题）
+# 本机发版流程详见 skill: release-one-modbus
 #
-# ┌─ GitHub（美国编译）──────┐
-# │  ① 编译 .exe            │
-# │  ② 创建 GitHub Release   │ ← 自带 .exe 附件
-# └────────┬─────────────────┘
-#          ↓ 唯一一次跨海上传
-# ┌─ Gitee（国内）───────────┐
-# │  ③ 上传 .exe（跨海）      │ ← 电工国内下载
-# └────────┬─────────────────┘
-#          ↓ 国内链路
-# ┌─ GitCode ────────────────┐
-# │  ④ 创建 GitCode Release  │ ← 放 Gitee 下载链接，不传附件
+# ┌─ 本机（国内编译）──────┐
+# │  ① 编译 + push tag      │
+# │  ② 上传 .exe 到 Gitee   │
+# │  ③ GitCode 放链接       │
+# └─────────────────────────┘
+#                          ↓ push 触发
+# ┌─ GitHub Actions ────────┐
+# │  ④ 编译 .exe            │
+# │  ⑤ 创建 GitHub Release  │ ← 国际下载点
 # └──────────────────────────┘
 
 on:
@@ -105,100 +103,3 @@ jobs:
           files: modbusrtu_broker.exe
           draft: false
           prerelease: false
-
-      - name: Upload release notes for downstream jobs
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: release_notes.md
-
-  sync-gitee:
-    name: Sync to Gitee
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build, release]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: one-modbus-windows-amd64
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-notes
-      - name: Upload to Gitee
-        env:
-          TOKEN: ${{ secrets.GITEE_TOKEN }}
-        run: |
-          # ⚠️ Gitee 创建 release: BODY 必须用 jq -Rs 内联(已验证)，不能用 jq --arg + 写文件（会 409）
-          TAG="${GITHUB_REF#refs/tags/}"
-          BODY=$(cat release_notes.md | jq -Rs .)
-          echo "Create Gitee release..."
-          RESP=$(curl -s --connect-timeout 30 --max-time 60 -X POST \
-            "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases" \
-            -H "Content-Type: application/json" \
-            -d "{\"access_token\":\"${TOKEN}\",\"tag_name\":\"${TAG}\",\"name\":\"one-modbus ${TAG}\",\"body\":${BODY},\"target_commitish\":\"master\"}")
-          RID=$(echo "$RESP" | jq -r '.id // "null"')
-          if [ "$RID" != "null" ]; then
-            echo "Upload exe to Gitee (跨海 22MB, 最长 15min, 自动重试3次)..."
-            # ⚠️ 900s=15分钟：22MB exe 从美国→中国可能超时，之前用 120s/600s 都 fail 过
-            # --retry 3: 网络闪断自动重试，30 秒间隔
-            curl -sS --connect-timeout 30 --max-time 900 --retry 3 --retry-delay 30 -X POST \
-              "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases/${RID}/attach_files" \
-              -F "access_token=${TOKEN}" \
-              -F "file=@modbusrtu_broker.exe"
-          else
-            echo "Gitee response: $RESP"
-          fi
-
-  sync-gitcode:
-    name: Sync to GitCode (link-only, no exe)
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build, release, sync-gitee]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-notes
-
-      - name: Create/update GitCode Release with Gitee download link
-        env:
-          GITCODE_TOKEN: ${{ secrets.GITCODE_TOKEN }}
-        run: |
-          set -e
-          TAG="${GITHUB_REF#refs/tags/}"
-
-          # release notes 末尾追加 Gitee 下载链接
-          cat release_notes.md > /tmp/gitcode_body.md
-          echo "" >> /tmp/gitcode_body.md
-          echo "---" >> /tmp/gitcode_body.md
-          echo "## 下载" >> /tmp/gitcode_body.md
-          echo "> 本页面为镜像站，exe 下载请优先使用 Gitee（国内速度快）" >> /tmp/gitcode_body.md
-
-          jq -n --arg tag "$TAG" --arg name "one-modbus $TAG" \
-            --arg body "$(cat /tmp/gitcode_body.md)" \
-            '{tag_name: $tag, name: $name, body: $body, target_commitish: "master"}' \
-            > /tmp/gitcode_release_payload.json
-
-          # ⚠️ GitCode API 坑：Release 对象没有 id 字段！用 tag_name 判断
-          echo "::group::Check/reconcile GitCode release for ${TAG}"
-          EXISTING=$(curl -sS --connect-timeout 30 --max-time 30 \
-            "https://api.gitcode.com/api/v5/repos/weixin_45444393/one-modbus/releases/tags/${TAG}" \
-            -H "Authorization: Bearer ${GITCODE_TOKEN}")
-          EXISTING_TAG=$(echo "$EXISTING" | jq -r '.tag_name // empty')
-          echo "::endgroup::"
-
-          if [ "$EXISTING_TAG" = "$TAG" ]; then
-            echo "Release ${TAG} already exists, updating via PUT..."
-            curl -sS --connect-timeout 30 --max-time 60 -X PUT \
-              "https://api.gitcode.com/api/v5/repos/weixin_45444393/one-modbus/releases/${TAG}" \
-              -H "Content-Type: application/json" \
-              -H "Authorization: Bearer ${GITCODE_TOKEN}" \
-              -d @/tmp/gitcode_release_payload.json | jq '{tag_name, name, message}' 2>/dev/null
-          else
-            echo "Release ${TAG} not found, creating via POST..."
-            curl -sS --connect-timeout 30 --max-time 60 -X POST \
-              "https://api.gitcode.com/api/v5/repos/weixin_45444393/one-modbus/releases" \
-              -H "Content-Type: application/json" \
-              -H "Authorization: Bearer ${GITCODE_TOKEN}" \
-              -d @/tmp/gitcode_release_payload.json | jq '{tag_name, name, message}' 2>/dev/null
-          fi
-          echo "✅ GitCode release sync complete (link to Gitee)"
