@@ -204,10 +204,10 @@ jobs:
           ls -la /tmp/modbusrtu_broker.exe
           echo "::endgroup::"
 
-          # GitCode API 不用 release ID，直接用 tag 名
+          # GitCode API 上传附件需指定 file_name
           echo "::group::Get GitCode upload URL by tag name..."
           UPLOAD_URL=$(curl -sS --connect-timeout 30 --max-time 30 \
-            "https://api.gitcode.com/api/v5/repos/weixin_45444393/one-modbus/releases/${TAG}/upload_url" \
+            "https://api.gitcode.com/api/v5/repos/weixin_45444393/one-modbus/releases/${TAG}/upload_url?file_name=modbusrtu_broker.exe" \
             -H "Authorization: Bearer ${GITCODE_TOKEN}" | jq -r '.upload_url // empty')
           echo "Upload URL: $UPLOAD_URL"
           echo "::endgroup::"
