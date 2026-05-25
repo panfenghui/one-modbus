@@ -55,7 +55,8 @@ jobs:
           # 嵌入 .syso 版本资源文件降低杀软误报（注释不能夹在 bash 续行符 \ 中间）
           CGO_ENABLED=1 GOOS=windows GOARCH=amd64 CC=x86_64-w64-mingw32-gcc \
           CGO_CFLAGS="-D_WIN32" CGO_LDFLAGS="-lws2_32" \
-          go build -ldflags '-s -w -extldflags=-static' -o modbusrtu_broker.exe modbusrtu_broker.go
+          # ⚠️ 必须用 go build（不加文件名），否则 .syso 不会自动链入
+          go build -ldflags '-s -w -extldflags=-static' -o modbusrtu_broker.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
