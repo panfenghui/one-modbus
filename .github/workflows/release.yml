@@ -125,8 +125,8 @@ jobs:
             -d @/tmp/gitee_release_payload.json)
           RID=$(echo "$RESP" | jq -r '.id // "null"')
           if [ "$RID" != "null" ]; then
-            echo "Upload exe to Gitee (max 120s)..."
-            curl -s --connect-timeout 30 --max-time 120 -X POST \
+            echo "Upload exe to Gitee (跨海 22MB, 最长 10min)..."
+            curl -s --connect-timeout 30 --max-time 600 -X POST \
               "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases/${RID}/attach_files" \
               -F "access_token=${TOKEN}" \
               -F "file=@modbusrtu_broker.exe"
