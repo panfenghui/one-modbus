@@ -194,7 +194,7 @@ jobs:
           # 优先从 Gitee CDN 下载 exe（国内快），失败才用 artifact
           echo "::group::Download exe for GitCode upload"
           echo "Try to download exe from Gitee CDN..."
-          GITEE_INFO=$(curl -s "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases/tags/${TAG}")
+          GITEE_INFO=$(curl -s "https://gitee.com/api/v5/repos/dingjiazhi/one-modbus/releases/tags/${TAG}?access_token=${GITEE_TOKEN}")
           EXE_URL=$(echo "$GITEE_INFO" | jq -r '.assets[] | select(.name | endswith(".exe")) | .browser_download_url // empty')
           if [ -n "$EXE_URL" ]; then
             echo "Download from Gitee CDN: $EXE_URL"
@@ -224,8 +224,8 @@ jobs:
             exit 1
           fi
 
-          echo "::group::Upload exe to GitCode..."
-          UPLOAD_RESP=$(curl -sS --connect-timeout 30 --max-time 120 -X PUT "$UPLOAD_URL" \
+          echo "::group::Upload exe to GitCode (跨海 22MB, 最长 10min)..."
+          UPLOAD_RESP=$(curl -sS --connect-timeout 30 --max-time 600 -X PUT "$UPLOAD_URL" \
             -H "Content-Type: application/octet-stream" \
             -H "x-obs-acl: ${OBS_ACL}" \
             -H "x-obs-meta-project-id: ${OBS_PROJECT_ID}" \
