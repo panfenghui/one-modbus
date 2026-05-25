@@ -16,17 +16,14 @@ BEGIN
         BLOCK "080404B0"
         BEGIN
             VALUE "CompanyName",      "丁家智"
-            VALUE "FileDescription",  "modbusrtu_broker - Modbus RTU 数据采集网关"
-            VALUE "FileVersion",      "0.2.16.0"
+            VALUE "FileDescription",  "modbusrtu_broker - Modbus RTU 采集网关 | GitHub: github.com/dingjiazhi/one-modbus/releases | Gitee: gitee.com/dingjiazhi/one-modbus/releases"
+            VALUE "FileVersion",      "0.2.17.0"
             VALUE "InternalName",     "modbusrtu_broker"
             VALUE "LegalCopyright",   "Copyright (C) 2026 丁家智"
             VALUE "OriginalFilename", "modbusrtu_broker.exe"
             VALUE "ProductName",      "one-modbus"
-            VALUE "ProductVersion",   "0.2.16.0"
-            VALUE "Comments",         "获取新版: github.com/dingjiazhi/one-modbus | gitee.com/dingjiazhi/one-modbus"
-            VALUE "WebAddress",       "https://github.com/dingjiazhi/one-modbus"
-            VALUE "GitHub",           "https://github.com/dingjiazhi/one-modbus"
-            VALUE "Gitee",            "https://gitee.com/dingjiazhi/one-modbus"
+            VALUE "ProductVersion",   "0.2.17.0"
+            VALUE "Comments",         "获取新版: github.com/dingjiazhi/one-modbus/releases | gitee.com/dingjiazhi/one-modbus/releases"
         END
     END
     BLOCK "VarFileInfo"
