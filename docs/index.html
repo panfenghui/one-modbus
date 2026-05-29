@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>one-modbus — 工业数据采集网关 | 替代传统组态方案</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --accent: #10b981;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --radius: 16px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%);
+    color: #fff;
+    padding: 80px 24px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.3;
+  }
+  .hero * { position: relative; z-index: 1; }
+  .hero .tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(4px);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: #7dd3fc; }
+  .hero .sub {
+    font-size: clamp(16px, 2.5vw, 22px);
+    opacity: 0.9;
+    max-width: 640px;
+    margin: 0 auto 32px;
+    font-weight: 400;
+  }
+  .hero .price-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.12);
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 15px;
+    margin-bottom: 32px;
+  }
+  .hero .price-tag strong { font-size: 22px; color: #fbbf24; }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { 
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 32px; border-radius: 12px;
+    font-size: 16px; font-weight: 600; text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: #fff; color: var(--primary); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .btn-ghost { border: 1px solid rgba(255,255,255,0.4); color: #fff; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+
+  /* ── Section ── */
+  section { padding: 60px 24px; max-width: 1100px; margin: 0 auto; }
+  section h2 {
+    font-size: 28px; font-weight: 700;
+    text-align: center; margin-bottom: 8px;
+  }
+  section .section-desc {
+    text-align: center; color: var(--muted);
+    margin-bottom: 40px; font-size: 16px;
+  }
+
+  /* ── Cost Comparison ── */
+  .cost-comparison {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); overflow: hidden;
+    margin-bottom: 60px;
+  }
+  .cost-comparison table { width: 100%; border-collapse: collapse; }
+  .cost-comparison th, .cost-comparison td {
+    padding: 14px 20px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+  }
+  .cost-comparison th {
+    background: #f1f5f9; font-weight: 600; font-size: 14px;
+  }
+  .cost-comparison .vs {
+    background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+    font-weight: 700; color: var(--primary);
+  }
+  .cost-comparison .check { color: var(--accent); font-weight: bold; }
+  .cost-comparison .cross { color: #ef4444; }
+  .cost-comparison .savings {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    font-weight: 700; color: #92400e;
+  }
+  .cost-comparison .savings td { padding: 18px 20px; border: none; }
+
+  /* ── Architecture ── */
+  .arch-flow {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; flex-wrap: wrap; padding: 40px 0;
+  }
+  .arch-node {
+    display: flex; flex-direction: column; align-items: center;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px; min-width: 100px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .arch-node .icon { font-size: 28px; margin-bottom: 6px; }
+  .arch-node .label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .arch-arrow { font-size: 20px; color: var(--muted); }
+
+  /* ── Features Grid ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .feature-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px;
+    transition: all 0.2s;
+  }
+  .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
+  .feature-card .emoji { font-size: 32px; margin-bottom: 12px; }
+  .feature-card h3 { font-size: 18px; margin-bottom: 8px; }
+  .feature-card p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  /* ── Story ── */
+  .story-block {
+    background: linear-gradient(135deg, #fefce8, #fef3c7);
+    border-radius: var(--radius); padding: 40px;
+    border: 1px solid #fde68a;
+  }
+  .story-block h3 { font-size: 20px; margin-bottom: 12px; }
+  .story-block p { font-size: 15px; color: #713f12; line-height: 1.8; }
+
+  /* ── CTA ── */
+  .cta {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: #fff; text-align: center;
+    padding: 60px 24px; border-radius: var(--radius);
+    margin: 40px 24px;
+  }
+  .cta h2 { color: #fff; }
+  .cta p { opacity: 0.9; margin: 12px 0 28px; font-size: 16px; }
+
+  /* ── Footer ── */
+  footer { text-align: center; padding: 32px 24px; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 640px) {
+    .cost-comparison th, .cost-comparison td { padding: 10px 12px; font-size: 13px; }
+    .feature-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ Hero ══ -->
+<div class="hero">
+  <div class="tag">⚡ 开源工业数据采集网关</div>
+  <h1>一个 .exe <br><span>替代传统组态方案</span></h1>
+  <p class="sub">从串口到云端，全链路搞定。不卖授权，不绑硬件，不养团队。</p>
+  <div class="price-tag">
+    💰 硬件成本 <strong>¥99</strong> / 现场 · 软件 <strong>免费</strong> / 开源
+  </div>
+  <div class="hero-btns">
+    <a href="https://github.com/dingjiazhi/one-modbus" class="btn btn-primary" target="_blank">📦 GitHub 源码</a>
+    <a href="#features" class="btn btn-ghost">👇 看功能</a>
+  </div>
+</div>
+
+<!-- ══ 成本对比 ══ -->
+<section>
+  <h2>💰 成本碾压</h2>
+  <p class="section-desc">一个 2-3 个现场的中小型能源管理公司，一年能省多少？</p>
+
+  <div class="cost-comparison">
+    <table>
+      <thead>
+        <tr>
+          <th>项目</th>
+          <th>传统方案（组态软件 + 联网展示）</th>
+          <th class="vs">one-modbus</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>📟 软件授权</td>
+          <td>传统组态软件 ¥20,000~100,000（买断）+ 年费 ¥3,000~10,000</td>
+          <td class="vs">✅ <strong>免费</strong>（开源 AGPL-3.0）</td>
+        </tr>
+        <tr>
+          <td>🖥️ 现场硬件</td>
+          <td>每现场一台工控机 ¥3,000+</td>
+          <td class="vs">一个 DTU <strong>¥99</strong> / 现场</td>
+        </tr>
+        <tr>
+          <td>🔗 设备挂载</td>
+          <td>一对一，一个设备占一个口</td>
+          <td class="vs"><strong>254 台设备</strong> 共用一条 RS-485 总线</td>
+        </tr>
+        <tr>
+          <td>📲 报警推送</td>
+          <td class="cross">✗ 需额外开发 ¥5,000~20,000</td>
+          <td class="vs">✅ 企业微信 · 微信 · 邮件 <strong>内置</strong></td>
+        </tr>
+        <tr>
+          <td>📊 历史存储</td>
+          <td class="cross">✗ 需额外配置</td>
+          <td class="vs">✅ SQLite <strong>开箱即用</strong></td>
+        </tr>
+        <tr>
+          <td>🔄 远程升级</td>
+          <td class="cross">✗ 不支持</td>
+          <td class="vs">✅ 上传 .exe <strong>自动替换</strong></td>
+        </tr>
+        <tr>
+          <td>🔧 部署耗时</td>
+          <td>专业工程师 1~2 周</td>
+          <td class="vs">填 Excel <strong>1 小时</strong></td>
+        </tr>
+        <tr>
+          <td>📡 远程采集</td>
+          <td>需单独配置网络穿透</td>
+          <td class="vs">✅ DTU + 虚拟串口 <strong>零配置</strong> 远程集中采集</td>
+        </tr>
+        <tr class="savings">
+          <td colspan="3">
+            📉 一个 3 现场项目：<strong>传统方案约 ¥7~15 万</strong> → <strong>one-modbus 约 ¥297（3×¥99 DTU）</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 架构 ══ -->
+<section>
+  <h2>🏗️ 架构全景</h2>
+  <p class="section-desc">一个 .exe 搞定采集、存储、API、报警、升级</p>
+
+  <div class="arch-flow">
+    <div class="arch-node"><span class="icon">🔌</span><span class="label">传感器 / PLC</span></div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-node"><span class="icon">📡</span><span class="label">DTU ¥99</span></div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-node" style="background: linear-gradient(135deg, #dbeafe, #e0f2fe); border-color: #93c5fd;">
+      <span class="icon">⚙️</span>
+      <span class="label" style="font-weight:700;color:var(--primary);">one-modbus.exe</span>
+    </div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-node"><span class="icon">📊</span><span class="label">Web / APP</span></div>
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:14px;margin-top:8px;">
+    ¥99 DTU 通过 RS-485 总线最多挂 254 台设备 · 一台服务器管理 254 个虚拟串口 · 理论最大 64,516 台设备
+  </p>
+</section>
+
+<!-- ══ 功能 ══ -->
+<section id="features">
+  <h2>🔧 核心功能</h2>
+  <p class="section-desc">不是"能用"，是"生产级"——30 年现场经验打磨出来的</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="emoji">⚡</div>
+      <h3>Modbus RTU 采集引擎</h3>
+      <p>多串口、多设备、多变量并发采集。同一设备的多变量自动打包为单次请求，RS-485 总线效率拉满。</p>
+    </div>
+    <div class="feature-card">
+      <div class="emoji">📋</div>
+      <h3>Excel 配置变量</h3>
+      <p>非技术人员用 Excel 表即可定义采集变量，不需要写一行代码。填好→放目录→重启搞定。</p>
+    </div>
+    <div class="feature-card">
+      <div class="emoji">🌐</div>
+      <h3>内嵌 HTTP API</h3>
+      <p>REST API 直接输出 JSON，前端、大屏、第三方系统想怎么接怎么接。不需要中间层。</p>
+    </div>
+    <div class="feature-card">
+      <div class="emoji">💾</div>
+      <h3>SQLite 时序存储</h3>
+      <p>按变量、按间隔自动存储历史数据。支持曲线图查询，不需要装数据库。</p>
+    </div>
+    <div class="feature-card">
+      <div class="emoji">📲</div>
+      <h3>企业微信报警</h3>
+      <p>采集异常、设备离线、阈值超限——自动推送企业微信群。还支持微信公众号推送和邮件。</p>
+    </div>
+    <div class="feature-card">
+      <div class="emoji">🔄</div>
+      <h3>远程升级</h3>
+      <p>上传新 .exe 到服务器，自动替换、自动重启。部署到现场后，从此不用再去现场。</p>
+    </div>
+    <div class="feature-card">
+      <div class="emoji">📊</div>
+      <h3>定时报表</h3>
+      <p>日报、周报、月报自动生成，定时邮件推送到指定邮箱。管理层不登录也能看到数据。</p>
+    </div>
+    <div class="feature-card">
+      <div class="emoji">🚀</div>
+      <h3>Go 并发调度</h3>
+      <p>goroutine + sync.RWMutex + atomic，14,000 行纯 Go。高性能低锁争用，稳定跑几个月不重启。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 故事 ══ -->
+<section>
+  <h2>📖 产品故事</h2>
+  <p class="section-desc">一个干了 30 年电工的人，不满意现有软件，边学 Go 边写出来的</p>
+  <div class="story-block">
+    <h3>🔧 "传统组态软件很强大，但它不适合我服务的客户"</h3>
+    <p>
+      作者做了 30 年现场——单片机、PLC、FPGA、变频器、液压系统全都搞过。服务的大多是中小型工厂和节能公司，他们只有 2-3 个现场项目，预算有限，但需要专业的数据采集能力。
+    </p>
+    <p>
+      传统组态软件功能强大，但一套买断 2-10 万、每年还要授权费。对一个大项目来说不贵，但对中小型项目来说，光是软件授权的成本就比整个项目的利润还高。
+    </p>
+    <p>
+      作者想：<strong>能不能做一个免费的、足够简单的、一个 .exe 就能跑起来的东西？</strong>
+    </p>
+    <p>
+      于是他开始学 Go。一年多时间，从零到 14,000 行代码，做出了 <strong>one-modbus</strong>——一个分布式、高并发的 Modbus RTU 数据采集网关。它不会替代大型组态软件在所有场景下的地位，但在中小型项目中，它<strong>完全够用、快得多、便宜到忽略不计</strong>。
+    </p>
+    <p style="margin-top:12px;color:#92400e;font-weight:600;">
+      "一个 ¥99 DTU + 一个 .exe = 做到了传统方案三套软件加起来才能做的事。这才是中小型项目应该有的方案。"
+    </p>
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<div class="cta">
+  <h2>🚀 现在就试试</h2>
+  <p>免费 · 开源 · 14,000 行 Go · 30 年现场经验打磨</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+    <a href="https://github.com/dingjiazhi/one-modbus" class="btn btn-primary" target="_blank">📦 GitHub 下载</a>
+    <a href="https://gitee.com/dingjiazhi/one-modbus" class="btn btn-primary" target="_blank">🇨🇳 Gitee 国内镜像</a>
+    <a href="https://gitcode.com/weixin_45444393/one-modbus" class="btn btn-ghost" target="_blank">🚀 GitCode 镜像</a>
+    <a href="mailto:158148415@qq.com" class="btn btn-ghost">📧 联系作者</a>
+  </div>
+</div>
+
+<!-- ══ Footer ══ -->
+<footer>
+  <p>one-modbus · AGPL-3.0 开源 · 由 djz（30 年现场老电工）用 Go 打造</p>
+</footer>
+
+</body>
+</html>
