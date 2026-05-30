@@ -5,7 +5,11 @@
 A production-grade Modbus RTU gateway for Windows. Single `.exe`, no dependencies.
 一个 .exe 搞定工业数据采集全链路。
 
-📥 **Download / 下载**：
+🌐 **产品官网 / Product Site**：
+- [one-modbus.pages.dev](https://one-modbus.pages.dev/) (Global, via Cloudflare)
+- [dingjiazhi.github.io/one-modbus](https://dingjiazhi.github.io/one-modbus/) (GitHub)
+
+📥 **下载 / Download**：
 - [GitHub Releases](https://github.com/dingjiazhi/one-modbus/releases) (International)
 - [Gitee Release](https://gitee.com/dingjiazhi/one-modbus/releases) (国内快)
 
@@ -81,6 +85,8 @@ AGPL-3.0
 ## English
 
 One .exe, no dependencies. Production-grade Modbus RTU gateway for Windows.
+
+**Site**: [one-modbus.pages.dev](https://one-modbus.pages.dev/) | [GitHub Pages](https://dingjiazhi.github.io/one-modbus/)
 
 **Quick Start**: Download → Place Excel config → Double-click → Open browser
 
